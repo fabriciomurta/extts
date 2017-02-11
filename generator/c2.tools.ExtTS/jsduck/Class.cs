@@ -1,10 +1,7 @@
 ﻿using HtmlAgilityPack;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace c2.tools.ExtTS.jsduck
 {
@@ -32,19 +29,19 @@ namespace c2.tools.ExtTS.jsduck
 
         public Member[] OwnMembers
         {
-            get { return this.ownMembers ?? (this.ownMembers = this.members.Where(m => this.name == m.owner && !m.meta.@private).ToArray()); }
+            get { return ownMembers ?? (ownMembers = members.Where(m => name == m.owner && !m.meta.@private).ToArray()); }
         }
         private Member[] ownMembers;
 
         public string Href
         {
-            get { return this.href ?? (this.href = name.Replace('.', '-')); }
+            get { return href ?? (href = name.Replace('.', '-')); }
         }
         private string href;
 
         public override string ToString()
         {
-            return this.name;
+            return name;
         }
 
         #endregion
@@ -53,14 +50,14 @@ namespace c2.tools.ExtTS.jsduck
 
         public void Initialize(Dictionary<string, Class> classMap, Dictionary<string, HtmlDocument> jsFileHtmlMap)
         {
-            var docs = new Dictionary<string, HtmlDocument>(this.files.Distinct(ClassFile.Comparer.Default).ToDictionary(f => f.LocalFile, f => jsFileHtmlMap[f.LocalFile]));
+            var docs = new Dictionary<string, HtmlDocument>(files.Distinct(ClassFile.Comparer.Default).ToDictionary(f => f.LocalFile, f => jsFileHtmlMap[f.LocalFile]));
 
-            if (!String.IsNullOrEmpty(this.html))
+            if (!String.IsNullOrEmpty(html))
             {
                 var htmlDoc = new HtmlDocument();
                 if (htmlDoc != null)
-                    htmlDoc.LoadHtml(this.html);
-                foreach (var member in this.OwnMembers)
+                    htmlDoc.LoadHtml(html);
+                foreach (var member in OwnMembers)
                 {
                     var aViewSource = htmlDoc.DocumentNode.SelectSingleNode($@"//div[@id = '{member.id}']").Descendants("a").Where(a => a.GetAttributeValue("class", null) == "view-source" && !String.IsNullOrEmpty(a.GetAttributeValue("href", null))).SingleOrDefault();
                     if (aViewSource != null)
@@ -76,7 +73,7 @@ namespace c2.tools.ExtTS.jsduck
                 }
             }
             this.docs = docs;
-            foreach (var member in this.OwnMembers)
+            foreach (var member in OwnMembers)
                 member.Initialize(classMap, this);
         }
 
@@ -93,13 +90,13 @@ namespace c2.tools.ExtTS.jsduck
 
         public string LocalFile
         {
-            get { return this.localfile ?? (this.localfile = this.href.Substring(0, this.href.IndexOf('#'))); }
+            get { return localfile ?? (localfile = href.Substring(0, href.IndexOf('#'))); }
         }
         private string localfile;
 
         public override string ToString()
         {
-            return this.LocalFile;
+            return LocalFile;
         }
 
         public class Comparer : IEqualityComparer<ClassFile>
