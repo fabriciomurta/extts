@@ -90,7 +90,16 @@ namespace c2.tools.ExtTS.jsduck
 
         public string LocalFile
         {
-            get { return localfile ?? (localfile = href.Substring(0, href.IndexOf('#'))); }
+            get
+            {
+                if (localfile == null)
+                {
+                    var index = href.IndexOf('#');
+                    localfile = (index >= 0) ? href.Substring(0, index) : "";
+                }
+
+                return localfile;
+            }
         }
         private string localfile;
 
