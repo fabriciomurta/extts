@@ -54,17 +54,34 @@ namespace c2.tools.ExtTS.jsduck
                     try
                     {
                         newclass = (jsduck.Class)Serializer.Deserialize(reader, typeof(jsduck.Class));
-                        Console.WriteLine();
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($@": {ex.ToString().Replace(Environment.NewLine, "|")}");
                         newclass = null;
                     }
-                    if (newclass != null)
+                    if (IsValid(newclass))
+                    {
+                        Console.WriteLine();
                         yield return newclass;
+                    }
+                    else
+                    {
+                        Console.WriteLine(" -- Invalid data, skipping.");
+                    }
                 }
             }
+        }
+
+        public static bool IsValid(jsduck.Class instance)
+        {
+            if (instance == null || instance.files == null ||
+                instance.files.Count() < 1 || string.IsNullOrWhiteSpace(instance.files[0].filename) || string.IsNullOrWhiteSpace(instance.files[0].href))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static T LoadWithCache<T>(string cachePath, Func<T> func)
