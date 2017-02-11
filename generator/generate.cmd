@@ -6,10 +6,6 @@ set ejspath=%~1
 set ejsver=%~2
 set ejstoolkit=%~3
 
-if [%ejspath%]==[] (
- set ejspath=.
-)
-
 if [%ejsver%]==[] (
  set ejsver=6.2.1
 )
@@ -18,7 +14,7 @@ if [%ejstoolkit%]==[] (
  set ejstoolkit=classic
 )
 
-if [%1]==[] (
+if [%ejspath%]==[] (
  echo Usage: %0 ^<extjs_root^> [^<extjs_version^>] [^<extjs_toolkit^>]
  echo.
  echo Point extjs_root to the folder where the extjs package was extracted i.e.
