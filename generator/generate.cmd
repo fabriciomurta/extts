@@ -2,16 +2,20 @@
 
 set jsduckbin=0.tools\jsduck-6.0.0-beta.exe
 set etsbin=c2.tools.ExtTS\bin\Debug\c2.tools.ExtTS.exe
-set ejspath=extjs
+set ejspath=%~1
 set ejsver=%~2
 set ejstoolkit=%~3
+
+if [%ejspath%]==[] (
+ set ejspath=extjs
+)
 
 if [%ejsver%]==[] (
  set ejsver=6.2.1
 )
 
 if [%ejstoolkit%]==[] (
- set ejstoolkit=classic
+ set ejstoolkit=all
 )
 
 if [%ejspath%]==[] (
@@ -33,8 +37,19 @@ if [%ejspath%]==[] (
  exit /b 0
 )
 
+if [%ejstoolkit%]==[all] (
+ %0 "%ejspath%" "%ejsver%" core
+ %0 "%ejspath%" "%ejsver%" classic
+ %0 "%ejspath%" "%ejsver%" modern
+ exit /b 0
+)
+
 :: ExtJS Toolkit/sources path
 set ejstkpath=%ejspath%\ext-%ejsver%\%ejstoolkit%\%ejstoolkit%\src
+
+if [%ejstoolkit%]==[core] (
+ set ejstkpath=%ejspath%\ext-%ejsver%\packages\%ejstoolkit%\src
+)
 
 set ejsdir=ext-%ejsver%-%ejstoolkit%
 set srcdir=1.src\%ejsdir%
