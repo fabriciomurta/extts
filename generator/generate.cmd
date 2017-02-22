@@ -2,7 +2,7 @@
 
 set jsduckbin=0.tools\jsduck-6.0.0-beta.exe
 set etsbin=c2.tools.ExtTS\bin\Debug\c2.tools.ExtTS.exe
-set ejspath=%~1
+set ejspath=extjs
 set ejsver=%~2
 set ejstoolkit=%~3
 
