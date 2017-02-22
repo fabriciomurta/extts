@@ -1,0 +1,14 @@
+generator/1.src
+generator/2.docs
+generator/3.out
+generator/c2.tools.ExtTS/.vs
+generator/c2.tools.ExtTS/bin/
+generator/c2.tools.ExtTS/obj/
+generator/c2.tools.ExtTS/packages/*/*
+
+*.suo
+*.exe
+*.com
+*.bin
+*.dll
+*.pdb
