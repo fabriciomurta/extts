@@ -1,0 +1,18 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Batch files become crazy if their file endings are not CRLF
+# EnableDelayedExpansion and goto:eol may jump anywhere in the script.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.csproj text eol=crlf
+
+# Text files: force them to be committed as native line ending (LF/Unix)
+*.asax text
+*.ashx text
+*.aspx text
+*.cs text
+*.md text
+*.svg text
+*.txt text
+*.xml text
