@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "c2.tools.ExtTS", "c2.tools.ExtTS.csproj", "{FA7D3428-14ED-4A11-9A8D-1FBB1C40F375}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtTS_GUI", "ExtTS_GUI\ExtTS_GUI.csproj", "{3C31D6BC-2DC4-4BB9-93E5-ED636246F222}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FA7D3428-14ED-4A11-9A8D-1FBB1C40F375}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA7D3428-14ED-4A11-9A8D-1FBB1C40F375}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA7D3428-14ED-4A11-9A8D-1FBB1C40F375}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C31D6BC-2DC4-4BB9-93E5-ED636246F222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C31D6BC-2DC4-4BB9-93E5-ED636246F222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C31D6BC-2DC4-4BB9-93E5-ED636246F222}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C31D6BC-2DC4-4BB9-93E5-ED636246F222}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
