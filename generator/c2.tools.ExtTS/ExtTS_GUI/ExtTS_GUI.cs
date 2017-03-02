@@ -455,41 +455,19 @@ namespace ExtTS_GUI
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             var me = sender as BackgroundWorker;
-            var timeout = 60; // timeout in seconds
 
             log("Starting .d.ts file generation.");
 
             var workdir = workDir_field.Text;
-            var ejsPath = Path.Combine(availableVersions[ejsVer_field.Text], Constants.ExtJS_Classic_Path);
-            var ejsVer = ejsVer_field.Text.Split(' ')[0]; // assume it will only have space after version number '6.2.1 (ext-6.2.1)'
+            var ejsVerFldContents = tsGetText(ejsVer_field);
+            var ejsPath = Path.Combine(availableVersions[ejsVerFldContents], Constants.ExtJS_Classic_Path);
+            var ejsVer = ejsVerFldContents.Split(' ')[0]; // assume it will only have space after version number '6.2.1 (ext-6.2.1)'
 
             if (cancelRequested(e)) return;
 
             var jsdp = JSDuck.RunAsync(workdir, ejsPath, ejsVer, log);
 
-            var timeLimit = DateTime.Now.AddSeconds(timeout);
-
-            // Poll for job finish but every 250ms check if timeout or cancel
-            // request has been issued.
-            while (!jsdp.WaitForExit(250))
-            {
-                if (timeLimit < DateTime.Now)
-                {
-                    log("JSDuck process did not finish in " + timeout + " seconds. Interrupting.");
-                    
-                    Util.KillJSDuck(jsdp, log);
-                    break;
-                }
-
-                if (cancelRequested(e))
-                {
-#if DEBUG
-                    log("JSDuck process cancel request received. Killing JSDuck and child processes.");
-#endif
-                    Util.KillJSDuck(jsdp, log);
-                    return;
-                }
-            }
+            JSDuck.PollExecution(jsdp, Constants.JSDuckTimeout, log, cancelRequested, e);
 
             log("Finished generating .d.ts file.");
         }
@@ -527,6 +505,30 @@ namespace ExtTS_GUI
             {
                 log("Finished running the generation process.");
             }
+        }
+
+        /// <summary>
+        /// Get component's Text value in a thread-safe way.
+        /// </summary>
+        /// <param name="c">Control handle</param>
+        /// <returns>The .Text property/field of the control.</returns>
+        private string tsGetText(Control c)
+        {
+            var retVal = string.Empty;
+
+            if (c.InvokeRequired)
+            {
+                Invoke((MethodInvoker)delegate ()
+                {
+                    retVal = c.Text;
+                });
+            }
+            else
+            {
+                retVal = c.Text;
+            }
+
+            return retVal;
         }
         #endregion Assynchronous task handlers
     }

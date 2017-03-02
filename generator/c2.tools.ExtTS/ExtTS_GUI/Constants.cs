@@ -16,5 +16,9 @@ namespace ExtTS_GUI
         public static readonly string JSDuckOut_BasePath = "2.docs";
 
         public static readonly string ExtTSOut_BasePath = "3.out";
+
+        #region Process running timeouts
+        public static readonly int JSDuckTimeout = 600;
+        #endregion Process running timeouts
     }
 }

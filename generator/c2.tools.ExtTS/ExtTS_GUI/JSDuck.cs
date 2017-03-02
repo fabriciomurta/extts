@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -76,12 +77,12 @@ namespace ExtTS_GUI
                 // Pipe output to logger if present.
                 jsDuckProc.OutputDataReceived += (sender, args) =>
                 {
-                    if (args.Data.Length > 0) log(args.Data);
+                    if (!string.IsNullOrWhiteSpace(args.Data)) log(args.Data);
                 };
 
                 jsDuckProc.ErrorDataReceived += (sender, args) =>
                 {
-                    if (args.Data.Length > 0)
+                    if (!string.IsNullOrWhiteSpace(args.Data))
                         log("*** " + (args.Data.StartsWith("Warning:") ? "" : "Error: ") + args.Data);
                 };
             }
@@ -129,6 +130,42 @@ namespace ExtTS_GUI
         public static Process RunAsync(string wd, string ep, string ev, Action<string> lfn = null)
         {
             return new JSDuck(wd, ep, ev, lfn).Run(true);
+        }
+
+        /// <summary>
+        /// Poll for job finish but every 250ms check if timeout or cancel request has been issued.
+        /// </summary>
+        /// <param name="jsdp">The JSDuck process object to watch for finish.</param>
+        /// <param name="timeout">The timeout in seconds to wait the process to finish.</param>
+        /// <param name="log">The log function to update output to console.</param>
+        /// <param name="cancelRequested">The function to handle the cancellation process.</param>
+        /// <param name="e">The event data object to watch for cancelation stimulus.</param>
+        public static void PollExecution(Process jsdp, int timeout, Action<string> log, Func<DoWorkEventArgs, bool> cancelRequested,
+            DoWorkEventArgs e)
+        {
+            var timeLimit = DateTime.Now.AddSeconds(timeout);
+
+            // Poll for job finish but every 250ms check if timeout or cancel
+            // request has been issued.
+            while (!jsdp.WaitForExit(250))
+            {
+                if (timeLimit < DateTime.Now)
+                {
+                    log("JSDuck process did not finish in " + timeout + " seconds. Interrupting.");
+
+                    Util.KillJSDuck(jsdp, log);
+                    break;
+                }
+
+                if (cancelRequested(e))
+                {
+#if DEBUG
+                    log("JSDuck process cancel request received. Killing JSDuck and child processes.");
+#endif
+                    Util.KillJSDuck(jsdp, log);
+                    return;
+                }
+            }
         }
     }
 }
