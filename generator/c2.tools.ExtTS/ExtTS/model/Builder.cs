@@ -2,12 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using c2.tools.ExtTS.jsduck;
+using ExtTS.jsduck;
 using System.IO;
 
-namespace c2.tools.ExtTS.model
+namespace ExtTS.model
 {
     sealed class Builder
     {
@@ -22,33 +20,34 @@ namespace c2.tools.ExtTS.model
         /// </summary>
         /// <param name="docOutputPath">*.js</param>
         /// <param name="docSourcePath">*.html</param>
-        public Builder(string docOutputPath, string docSourcePath)
+        /// <param name="version">ExtJS version</param>
+        public Builder(string docOutputPath, string docSourcePath, string version)
         {
-            if (!System.IO.Directory.Exists(docOutputPath))
-                throw new System.IO.FileNotFoundException(docOutputPath);
-            if (!System.IO.Directory.Exists(docSourcePath))
-                throw new System.IO.FileNotFoundException(docSourcePath);
+            if (!Directory.Exists(docOutputPath))
+                throw new FileNotFoundException(docOutputPath);
+            if (!Directory.Exists(docSourcePath))
+                throw new FileNotFoundException(docSourcePath);
 
             // Load all document guides/comments from *.html markup sourcecode
             Console.Write("HTML.SOURCES: ");
             var jsFileHtmlMap = Utils.FindHtmls(docSourcePath).ToDictionary(o => o.Item1, o => o.Item2);
-            this.ExtVersion = this.GetVersion(jsFileHtmlMap["Version.html"], docSourcePath);
+            ExtVersion = version;
 
             // Load all JsDuck.Classes meta data information from *.js
             Console.Write("JS.FILES");
-            this.JsClasses = jsduck.Utils.FindClasses(docOutputPath, "FILE").ToArray(); // LoadWithCache(CachePath, () => FindClasses(outputPath).ToArray());
-            this.JsClassMap = this.JsClasses.SelectMany(o => o.alternateClassNames.Select(a => Tuple.Create(a, o)))
-                .Concat(this.JsClasses.Select(c => Tuple.Create(c.name, c)))
+            JsClasses = Utils.FindClasses(docOutputPath, "FILE").ToArray(); // LoadWithCache(CachePath, () => FindClasses(outputPath).ToArray());
+            JsClassMap = JsClasses.SelectMany(o => o.alternateClassNames.Select(a => Tuple.Create(a, o)))
+                .Concat(JsClasses.Select(c => Tuple.Create(c.name, c)))
                 .ToDictionary(o => o.Item1, o => o.Item2);
-            this.JsModuleClasses = this.JsClasses.GroupBy(o => o.name.IndexOf('.') <= 0 ? "" : o.name.Substring(0, o.name.LastIndexOf('.'))).OrderBy(o => o.Key).ToDictionary(o => o.Key, o => o.ToArray());
+            JsModuleClasses = JsClasses.GroupBy(o => o.name.IndexOf('.') <= 0 ? "" : o.name.Substring(0, o.name.LastIndexOf('.'))).OrderBy(o => o.Key).ToDictionary(o => o.Key, o => o.ToArray());
 
             // Initialize JsDuck.Classes
-            Console.WriteLine($"JS.CLASSES[{this.JsClasses.Length}]");
+            Console.WriteLine($"JS.CLASSES[{JsClasses.Length}]");
             var count = 0;
-            foreach (var jsClass in this.JsClasses)
+            foreach (var jsClass in JsClasses)
             {
-                Console.WriteLine($@"CLASS-{++count}/{this.JsClasses.Length}. {jsClass.name}[{jsClass.OwnMembers.Length}]");
-                jsClass.Initialize(this.JsClassMap, jsFileHtmlMap);
+                Console.WriteLine($@"CLASS-{++count}/{JsClasses.Length}. {jsClass.name}[{jsClass.OwnMembers.Length}]");
+                jsClass.Initialize(JsClassMap, jsFileHtmlMap);
             }
         }
 
@@ -89,7 +88,7 @@ namespace c2.tools.ExtTS.model
         /// <summary>
         /// Create new tsClass into tsModule with members from jsClass meta information 
         /// </summary>
-        private model.Class BuildClass(model.Module tsModule, jsduck.Class jsClass)
+        private Class BuildClass(Module tsModule, jsduck.Class jsClass)
         {
             Dictionary<string, HashSet<string>> jsHtmlParams;
             string[] jsHtmlComments;
@@ -108,18 +107,18 @@ namespace c2.tools.ExtTS.model
                 Member member;
                 switch (jsMember.tagname)
                 {
-                    case model.PropertyMember.TAG:
-                        member = new model.PropertyMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
+                    case PropertyMember.TAG:
+                        member = new PropertyMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
                         break;
-                    case model.MethodMember.TAG:
-                        member = new model.MethodMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
+                    case MethodMember.TAG:
+                        member = new MethodMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
                         break;
-                    case model.ConfigMember.TAG:
-                        member = new model.ConfigMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
+                    case ConfigMember.TAG:
+                        member = new ConfigMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
                         tsClass.MemberConfigs.Add(member.Name, member);
                         break;
-                    case model.EventMember.TAG:
-                        member = new model.EventMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
+                    case EventMember.TAG:
+                        member = new EventMember(jsMember.name, jsHtmlComments, jsHtmlParams, tsClass, jsMember, this.JsClassMap);
                         break;
                     default:
                         throw new NotImplementedException(jsMember.tagname);
@@ -128,16 +127,16 @@ namespace c2.tools.ExtTS.model
                     tsClass.Members.Add(member.Name, member);
                 else switch (jsMember.tagname)
                 {
-                    case model.PropertyMember.TAG:
-                    case model.MethodMember.TAG:
+                    case PropertyMember.TAG:
+                    case MethodMember.TAG:
                         if (!tsClass.MemberExs.ContainsKey(member.Name))
                             tsClass.MemberExs.Add(member.Name, new HashSet<Member>() { tsClass.Members[member.Name] });
                         else
                             tsClass.MemberExs[member.Name].Add(tsClass.Members[member.Name]);
                         tsClass.Members[member.Name] = member;
                         break;
-                    case model.ConfigMember.TAG:
-                    case model.EventMember.TAG:
+                    case ConfigMember.TAG:
+                    case EventMember.TAG:
                         if (!tsClass.MemberExs.ContainsKey(member.Name))
                             tsClass.MemberExs.Add(member.Name, new HashSet<Member>() { member });
                         else
@@ -205,7 +204,7 @@ namespace c2.tools.ExtTS.model
         {
             const string BuildDateCode = "Build date: ";
             const string GTMCode = " (GMT)";
-            string code = System.IO.File.ReadAllText(ts);
+            string code = File.ReadAllText(ts);
             var start = code.IndexOf(BuildDateCode);
             if (start < 0)
                 return null;

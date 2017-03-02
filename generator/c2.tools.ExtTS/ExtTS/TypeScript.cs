@@ -1,57 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.IO;
-using System.Diagnostics;
+using System.Linq;
 
-namespace c2.tools.ExtTS
+namespace ExtTS
 {
-    class program
+    public class TypeScript
     {
-        static void Main(string[] args)
-        {
-            var libs = args.Length <= 0 ? path.ExtLibs : path.ExtLibs.Select(l => args.Any(a => String.Compare(l, a, true) == 0) ? l : null).ToArray();
-            for (var i = 0; i < libs.Length; i++)
-                if (libs[i] != null)
-            {
-                try
-                {
-                    Console.WriteLine($"[{i + 1}/{libs.Length}. {libs[i]}] GENERATE JsDuck Documents --------------------------------------------------------------");
-                    GenerateDocs(path._0_tools_jsduck, path._1_src_all[i], path._2_docs_all[i]);
-
-                    Console.WriteLine($"[{i + 1}/{libs.Length}. {libs[i]}] GENERATE TypeScript Definitions --------------------------------------------------------------");
-                    GenerateTS(path._2_docs_all[i], path._3_out_all[i]);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($@"[{i + 1}/{libs.Length}. {libs[i]}] {ex.ToString().Replace(Environment.NewLine, "|")}");
-                }
-                Console.WriteLine();
-                Console.WriteLine();
-            }
-        }
-
-        public static void GenerateDocs(string jsduckPath, string srcPath, string docPath)
-        {
-            if (Directory.EnumerateFiles(docPath, "*.*", SearchOption.TopDirectoryOnly).Any())
-                Console.WriteLine($@"[Warning] JsDuck DOCS already generated: {docPath}, please empty the folder to re-generate the ExtJS docs from ExtJS source");
-            else
-            {
-                Console.WriteLine($@"[JsDuck] NOTES: You may need to change SystemLocale to En(US)~ if any error");
-
-                var process = new Process()
-                {
-                    StartInfo = new ProcessStartInfo(jsduckPath, $@"""{srcPath}"" --output ""{docPath}""")
-                    {
-                        UseShellExecute = false
-                    }
-                };
-                process.Start();
-                process.WaitForExit();
-            }
-        }
-
-
-        static void GenerateTS(string docPath, string tsPath)
+        public static void Generate(string docPath, string tsPath, string version, string toolkit)
         {
             var outputPath = Path.Combine(docPath, "output");
             if (!Directory.Exists(outputPath))
@@ -69,7 +24,7 @@ namespace c2.tools.ExtTS
             {
                 jsduck.JsDoc.UnknownExtTypes.Clear();
                 Console.WriteLine($"GENERATING:\n    - From OUTPUT: {outputPath}\\*.js\n    - From SOURCE: {sourcePath}\\*.html");
-                var tsFile = new model.Builder(outputPath, sourcePath).Build();
+                var tsFile = new model.Builder(outputPath, sourcePath, version).Build();
                 if (tsFile == null)
                     Console.WriteLine($@"Modules: not found");
                 else

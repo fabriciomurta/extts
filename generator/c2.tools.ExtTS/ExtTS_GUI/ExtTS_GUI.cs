@@ -1,17 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using ExtTS;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ExtTS_GUI
@@ -460,14 +455,71 @@ namespace ExtTS_GUI
 
             var workdir = workDir_field.Text;
             var ejsVerFldContents = tsGetText(ejsVer_field);
-            var ejsPath = Path.Combine(availableVersions[ejsVerFldContents], Constants.ExtJS_Classic_Path);
+            var ejsToolkit = tsGetText(ejsTk_field);
             var ejsVer = ejsVerFldContents.Split(' ')[0]; // assume it will only have space after version number '6.2.1 (ext-6.2.1)'
+
+            Dictionary<string, string> ejsTkList;
 
             if (cancelRequested(e)) return;
 
-            var jsdp = JSDuck.RunAsync(workdir, ejsPath, ejsVer, log);
+            if (ejsToolkit == "All")
+            {
+                ejsTkList = new Dictionary<string, string>
+                {
+                    { "Classic", Constants.ExtJS_Classic_Path },
+                    { "Modern", Constants.ExtJS_Modern_Path },
+                    { "Core", Constants.ExtJS_Core_Path }
+                };
+            }
+            else
+            {
+                ejsTkList = new Dictionary<string, string>();
+                switch (ejsToolkit)
+                {
+                    case "Classic":
+                        ejsTkList.Add(ejsToolkit, Constants.ExtJS_Classic_Path);
+                        break;
+                    case "Modern":
+                        ejsTkList.Add(ejsToolkit, Constants.ExtJS_Modern_Path);
+                        break;
+                    case "Core":
+                        ejsTkList.Add(ejsToolkit, Constants.ExtJS_Core_Path);
+                        break;
+                    default:
+                        throw new Exception("Unsupported toolkit specified: " + ejsToolkit);
+                }
+            }
 
-            JSDuck.PollExecution(jsdp, Constants.JSDuckTimeout, log, cancelRequested, e);
+            if (cancelRequested(e)) return;
+
+            var ejsPath = string.Empty;
+            var dtsPath = string.Empty;
+            var lcToolkit = string.Empty;
+            foreach (var toolkit in ejsTkList)
+            {
+                lcToolkit = toolkit.Key.ToLowerInvariant();
+
+                log("Generating JSDuck docs for ExtJS " + ejsVerFldContents + " - " + lcToolkit + " toolkit.");
+                ejsPath = Path.Combine(availableVersions[ejsVerFldContents], toolkit.Value);
+
+                var jsdObject = new JSDuck(workdir, ejsPath, ejsVer, lcToolkit, log);
+
+                if (cancelRequested(e)) return;
+                var jsdp = jsdObject.RunAsync();
+                if (cancelRequested(e)) return;
+
+                JSDuck.PollExecution(jsdp, Constants.JSDuckTimeout, log, cancelRequested, e);
+
+                log("Finished generating JSDuck documentation.");
+                if (cancelRequested(e)) return;
+
+                log("From JSDuck docs, generating the .d.ts file for ExtJS " + ejsVerFldContents + " - " + lcToolkit + " toolkit.");
+                dtsPath = Path.Combine(workdir, Constants.ExtTSOut_BasePath, "ExtTS-" + ejsVer + "-" + lcToolkit + ".d.ts");
+                TypeScript.Generate(jsdObject.OutputPath, dtsPath, ejsVer, lcToolkit);
+
+                log("Finished generating .d.ts file. Path: " + dtsPath);
+                if (cancelRequested(e)) return;
+            }
 
             log("Finished generating .d.ts file.");
         }

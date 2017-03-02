@@ -14,9 +14,17 @@ namespace ExtTS_GUI
         private string workingDirectory;
         private string extjsPath;
         private string extjsVer;
+        private string extjsToolkit;
         private Action<string> log;
-
-        public JSDuck(string wd, string ep, string ev, Action<string> lfn = null)
+        
+        public string OutputPath
+        {
+            get
+            {
+                return Path.Combine(workingDirectory, Constants.JSDuckOut_BasePath, "ext-" + extjsVer + "-" + extjsToolkit);
+            }
+        }
+        public JSDuck(string wd, string ep, string ev, string et, Action<string> lfn = null)
         {
             if (wd == Environment.CurrentDirectory)
             {
@@ -29,13 +37,14 @@ namespace ExtTS_GUI
             
             extjsPath = ep;
             extjsVer = ev;
+            extjsToolkit = et;
             log = lfn;
         }
 
         public Process Run(bool async = false, int serialTimeout = 60000)
         {
             var jsDuckBin_Path = Path.Combine(workingDirectory, Constants.JSDuckBin_Path);
-            var jsDuck_OutPath = Path.Combine(workingDirectory, Constants.JSDuckOut_BasePath, "ext-" + extjsVer);
+            var jsDuck_OutPath = OutputPath;
             var procArgs = '"' + extjsPath + '"' + " --output " + '"' + jsDuck_OutPath + '"';
 
             if (!File.Exists(jsDuckBin_Path))
@@ -107,14 +116,15 @@ namespace ExtTS_GUI
         /// <summary>
         /// Convenience method to run without directly instantiating
         /// </summary>
-        /// <param name="wd"></param>
-        /// <param name="ep"></param>
-        /// <param name="ev"></param>
-        /// <param name="lfn"></param>
+        /// <param name="wd">Working/base directory</param>
+        /// <param name="ep">ExtJS Path</param>
+        /// <param name="ev">ExtJS Version</param>
+        /// <param name="et">ExtJS Toolkit</param>
+        /// <param name="lfn">Logger function name</param>
         /// <returns></returns>
-        public static bool Run(string wd, string ep, string ev, Action<string> lfn = null)
+        public static bool Run(string wd, string ep, string ev, string et, Action<string> lfn = null)
         {
-            new JSDuck(wd, ep, ev, lfn).Run();
+            new JSDuck(wd, ep, ev, et, lfn).Run();
 
             return true;
         }
@@ -122,14 +132,24 @@ namespace ExtTS_GUI
         /// <summary>
         /// Convenience method to run without directly instantiating
         /// </summary>
-        /// <param name="wd"></param>
-        /// <param name="ep"></param>
-        /// <param name="ev"></param>
-        /// <param name="lfn"></param>
+        /// <param name="wd">Working/base directory</param>
+        /// <param name="ep">ExtJS Path</param>
+        /// <param name="ev">ExtJS Version</param>
+        /// <param name="et">ExtJS Toolkit</param>
+        /// <param name="lfn">Logger function name</param>
         /// <returns></returns>
-        public static Process RunAsync(string wd, string ep, string ev, Action<string> lfn = null)
+        public static Process RunAsync(string wd, string ep, string ev, string et, Action<string> lfn = null)
         {
-            return new JSDuck(wd, ep, ev, lfn).Run(true);
+            return new JSDuck(wd, ep, ev, et, lfn).Run(true);
+        }
+
+        /// <summary>
+        /// Asynchronously run this instance.
+        /// </summary>
+        /// <returns>The process object.</returns>
+        public Process RunAsync()
+        {
+            return Run(true);
         }
 
         /// <summary>

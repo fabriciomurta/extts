@@ -1,11 +1,9 @@
-﻿using c2.tools.ExtTS.jsduck;
+﻿using ExtTS.jsduck;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace c2.tools.ExtTS.model
+namespace ExtTS.model
 {
     class PropertyMember : Member
     {
