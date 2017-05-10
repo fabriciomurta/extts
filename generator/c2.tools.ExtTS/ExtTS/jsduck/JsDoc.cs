@@ -9,7 +9,7 @@ namespace ExtTS.jsduck
 {
     public static class JsDoc
     {
-        public readonly static string[] NEWLINES = new string[] { Environment.NewLine };
+        public readonly static string[] NEWLINES = new string[] { Environment.NewLine, "\n" };
         public readonly static string[] EMPTYLINES = new string[] { };
         public readonly static char[] SPACES = new char[] { ' ' };
         public readonly static char[] COMMAS = new char[] { ',' };
