@@ -387,7 +387,6 @@ namespace ExtTS_GUI
             {
                 knownToolkits.Add("Classic", Path.Combine(ejsFolder, Constants.ExtJS_Classic_Path));
                 knownToolkits.Add("Modern", Path.Combine(ejsFolder, Constants.ExtJS_Modern_Path));
-                knownToolkits.Add("Core", Path.Combine(ejsFolder, Constants.ExtJS_Core_Path));
             }
 
             ejsTk_field.Items.Clear();
@@ -401,7 +400,7 @@ namespace ExtTS_GUI
                 }
             }
 
-            if (availableToolkits.Count > 1)
+            /*if (availableToolkits.Count > 1)
             {
                 ejsTk_field.Items.Add("All");
 
@@ -410,7 +409,7 @@ namespace ExtTS_GUI
                     ejsTk_field.SelectedItem = "All";
                     selectedAny = true;
                 }
-            }
+            }*/
 
             foreach (var tkName in availableToolkits)
             {
@@ -468,7 +467,6 @@ namespace ExtTS_GUI
                 {
                     { "Classic", Constants.ExtJS_Classic_Path },
                     { "Modern", Constants.ExtJS_Modern_Path },
-                    { "Core", Constants.ExtJS_Core_Path }
                 };
             }
             else
@@ -481,9 +479,6 @@ namespace ExtTS_GUI
                         break;
                     case "Modern":
                         ejsTkList.Add(ejsToolkit, Constants.ExtJS_Modern_Path);
-                        break;
-                    case "Core":
-                        ejsTkList.Add(ejsToolkit, Constants.ExtJS_Core_Path);
                         break;
                     default:
                         throw new Exception("Unsupported toolkit specified: " + ejsToolkit);
