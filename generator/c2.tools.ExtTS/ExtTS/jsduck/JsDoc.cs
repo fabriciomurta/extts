@@ -110,9 +110,14 @@ namespace ExtTS.jsduck
         public static string[] ExtractComments(string spanID, string itemID, Dictionary<string, HtmlDocument> docs, CommentParamExtractor paramExtractor = null)
         {
             var comments = new List<string>();
+            string commentSummary;
+
             for (var node = docs.Values.Select(d => d.DocumentNode.SelectSingleNode($@"//span[@id = '{spanID}']")).Where(n => n != null).FirstOrDefault();
                 node != null; node = node.NextSibling == null || node.NextSibling.Name != "#text" ? null : node.NextSibling)
             {
+                var firstLine = true;
+                commentSummary = string.Empty;
+
                 var lines = node.InnerText.Split(NEWLINES, StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim()).ToArray();
                 foreach (var line in lines)
                 {
@@ -189,7 +194,14 @@ namespace ExtTS.jsduck
                         if (!commentLine.EndsWith("*/"))
                         {
                             if (!commentLine.StartsWith("* @") || commentLine.Length <= 3)
+                            {
+                                if (firstLine)
+                                {
+                                    firstLine = false;
+                                    commentSummary = commentLine;
+                                }
                                 comments.Add(' ' + commentLine);
+                            }
                             else
                             {
                                 var pos = commentLine.IndexOfAny(BLANKS, 3);
@@ -206,8 +218,11 @@ namespace ExtTS.jsduck
                                 }
                                 if (paramExtractor != null)
                                     commentLine = paramExtractor(type, data, commentLine);
+
                                 if (commentLine != null)
+                                {
                                     comments.Add(' ' + commentLine);
+                                }
                             }
                         }
                         else
@@ -231,6 +246,66 @@ namespace ExtTS.jsduck
                                         comments.RemoveAt(i);
                                     else
                                         break;
+
+                                // Use @summary and @description if the comment is more than some lines long
+                                if (!firstLine && !string.IsNullOrWhiteSpace(commentSummary) && comments.Count > (3+2))
+                                {
+                                    // Check also if the first @param line (if any) is after that 5-line-count threshold
+                                    var firstAtParamLine = comments.FindIndex(l => l.StartsWith(" * @param"));
+
+                                    if (firstAtParamLine < 0 || firstAtParamLine > (3 + 1))
+                                    {
+                                        // Try to match just the first sentence of the string summary.
+                                        if (commentSummary.Contains(". "))
+                                        {
+                                            // Adds 1 to the index just so that we grab the period from the string.
+                                            commentSummary = commentSummary.Substring(0, commentSummary.IndexOf(". ") + 1);
+                                        }
+
+                                        // Try up to three lines below to find the end of the sentence if the first line does not conclude a sentence.
+                                        if (!commentSummary.EndsWith("."))
+                                        {
+                                            var i = 0;
+                                            for (; i < 3; i++) // warning: 3 here shouldn't be more than 3 (see comments.Count > (3+2) above!)
+                                            {
+                                                if (comments[i + 2].Contains(". "))
+                                                {
+                                                    // '2' in substring start index is to skip ' *' from begin
+                                                    // index ends with -1 cause it already starts at 2, then we move one
+                                                    // position back to finish right in the period.
+                                                    commentSummary += comments[i + 2].Substring(2, comments[i + 2].IndexOf(". ") - 1);
+                                                    break; // sentence completed, no need to continue searching for the end.
+                                                }
+                                                else if (comments[i + 2].EndsWith("."))
+                                                {
+                                                    commentSummary += comments[i + 2].Substring(2);
+                                                    break; // sentence completed, no need to continue searching for the end.
+                                                }
+                                                else if (comments[i + 2].Length <= 3)
+                                                {
+                                                    // An empty line, then the previous sentence must have ended. Stop looking for the end of the sentence
+                                                    // and return with an unmodified code.
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    // The whole line is still continuing the sentence, so just append it.
+                                                    commentSummary += comments[i + 2].Substring(2);
+                                                }
+                                            }
+
+                                            // At this point, if it didn't get to the end of the comment's first sentence, we'll leave it unterminated and expect
+                                            // the user will check the comment's @description body. So we add a '...' to the end of the sentence.
+                                            if (i >= 3 && !commentSummary.EndsWith("."))
+                                                commentSummary += "...";
+                                        }
+
+                                        comments.Insert(1, " * @summary");
+                                        comments.Insert(2, ' ' + commentSummary);
+                                        comments.Insert(3, " * @description");
+                                    }
+                                }
+
                                 return comments.Count <= 2 ? null : comments.ToArray();
                             }
                         }
@@ -242,7 +317,7 @@ namespace ExtTS.jsduck
 
         public static void AddComments(List<string> listSources, string comments)
         {
-            var lines = comments.Split(JsDoc.NEWLINES, StringSplitOptions.None);
+            var lines = comments.Split(NEWLINES, StringSplitOptions.None);
             if (lines.Length > 0)
             {
                 var start = 0;
