@@ -10,15 +10,15 @@ namespace ExtTS
         {
             var outputPath = Path.Combine(docPath, "output");
             if (!Directory.Exists(outputPath))
-                throw new DirectoryNotFoundException(outputPath);
+                throw new DirectoryNotFoundException("Directory not found: " + outputPath);
             if (!Directory.EnumerateFiles(outputPath, "*.js", SearchOption.TopDirectoryOnly).Any())
-                throw new FileNotFoundException(Path.Combine(outputPath, "*.js"));
+                throw new FileNotFoundException("File not found: " + Path.Combine(outputPath, "*.js"));
 
             var sourcePath = Path.Combine(docPath, "source");
             if (!Directory.Exists(sourcePath))
-                throw new DirectoryNotFoundException(sourcePath);
+                throw new DirectoryNotFoundException("Directory not found: " + sourcePath);
             if (!Directory.EnumerateFiles(sourcePath, "*.html", SearchOption.TopDirectoryOnly).Any())
-                throw new FileNotFoundException(Path.Combine(sourcePath, "*.html"));
+                throw new FileNotFoundException("File not found: " + Path.Combine(sourcePath, "*.html"));
 
             try
             {
