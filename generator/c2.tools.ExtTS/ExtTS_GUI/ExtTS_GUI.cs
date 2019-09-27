@@ -494,8 +494,7 @@ namespace ExtTS_GUI
             {
                 lcToolkit = toolkit.Key.ToLowerInvariant();
 
-                // For now, let's skip our friend JSDuck. ;) (running externally, manually.)
-                /*log("Generating JSDuck docs for ExtJS " + ejsVerFldContents + " - " + lcToolkit + " toolkit.");
+                log("Generating JSDuck docs for ExtJS " + ejsVerFldContents + " - " + lcToolkit + " toolkit.");
                 ejsPath = Path.Combine(availableVersions[ejsVerFldContents], toolkit.Value);
 
                 var jsdObject = new JSDuck(workdir, ejsPath, ejsVer, lcToolkit, log);
@@ -506,15 +505,13 @@ namespace ExtTS_GUI
 
                 JSDuck.PollExecution(jsdp, Constants.JSDuckTimeout, log, cancelRequested, e);
 
-                log("Finished generating JSDuck documentation.");*/
+                log("Finished generating JSDuck documentation.");
                 if (cancelRequested(e)) return;
 
                 log("From JSDuck docs, generating the .d.ts file for ExtJS " + ejsVerFldContents + " - " + lcToolkit + " toolkit.");
                 dtsPath = Path.Combine(workdir, Constants.ExtTSOut_BasePath, "ExtTS-" + ejsVer + "-" + lcToolkit + ".d.ts");
 
-                // For now, let's use a fixed pre-provided JSDuck output path:
-                //TypeScript.Generate(jsdObject.OutputPath, dtsPath, ejsVer, lcToolkit);
-                TypeScript.Generate(workdir + "\\2.docs\\e621_classic", dtsPath, ejsVer, lcToolkit);
+                TypeScript.Generate(jsdObject.OutputPath, dtsPath, ejsVer, lcToolkit);
 
                 log("Finished generating .d.ts file. Path: " + dtsPath);
                 if (cancelRequested(e)) return;
