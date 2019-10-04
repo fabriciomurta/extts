@@ -2,10 +2,13 @@ generator/1.src
 generator/2.docs
 generator/3.out
 generator/c2.tools.ExtTS/.vs
-generator/c2.tools.ExtTS/bin/
-generator/c2.tools.ExtTS/obj/
+generator/c2.tools.ExtTS/ExtTS/bin
+generator/c2.tools.ExtTS/ExtTS/obj
+generator/c2.tools.ExtTS/ExtTS_GUI/bin
+generator/c2.tools.ExtTS/ExtTS_GUI/obj
 generator/c2.tools.ExtTS/packages/*/*
 
+*.csproj.user
 *.suo
 *.exe
 *.com
