@@ -47,7 +47,7 @@ namespace ExtTS_GUI
         private void ExtTS_GUI_Load(object sender, EventArgs e)
         {
             workDir_field.Text = Environment.CurrentDirectory;
-            
+
             if (Directory.Exists("extjs"))
             {
                 ejsRoot_field.Text = ".\\extjs\\";
@@ -165,7 +165,7 @@ namespace ExtTS_GUI
 
                 progresLog_field.Text = currTS + " - " + text + Environment.NewLine + progresLog_field.Text;
             }
-            
+
         }
 
         private string getRelPath(string path, string relativeTo = null)
@@ -182,7 +182,7 @@ namespace ExtTS_GUI
             {
                 wd = relativeTo;
             }
-            
+
             if (path.StartsWith(".\\"))
             {
                 if (wd != relativeTo)
@@ -487,23 +487,60 @@ namespace ExtTS_GUI
 
             if (cancelRequested(e)) return;
 
-            var ejsPath = string.Empty;
+            var ejsPaths = new List<string>();
             var dtsPath = string.Empty;
             var lcToolkit = string.Empty;
+            var possiblePaths = new List<string>();
             foreach (var toolkit in ejsTkList)
             {
                 lcToolkit = toolkit.Key.ToLowerInvariant();
 
                 log("Generating JSDuck docs for ExtJS " + ejsVerFldContents + " - " + lcToolkit + " toolkit.");
-                ejsPath = Path.Combine(availableVersions[ejsVerFldContents], toolkit.Value);
 
-                var jsdObject = new JSDuck(workdir, ejsPath, ejsVer, lcToolkit, log);
+                foreach (var pkg in new string[] {"stubs", "charts", "core", "soap", "ux"})
+                {
+                    foreach (var subpk in new string[] { "src", "overrides" })
+                    {
+                        possiblePaths.Add(Path.Combine(availableVersions[ejsVerFldContents], Constants.ExtJS_Packages_Root,
+                            pkg, subpk));
+                        possiblePaths.Add(Path.Combine(availableVersions[ejsVerFldContents], Constants.ExtJS_Packages_Root,
+                            pkg, lcToolkit, subpk));
+                    }
+                }
+
+                possiblePaths.Add(Path.Combine(availableVersions[ejsVerFldContents], toolkit.Value));
+
+                foreach (var pkpath in possiblePaths)
+                {
+                    if (Directory.Exists(pkpath))
+                    {
+                        log("Adding path: " + pkpath);
+                        ejsPaths.Add(pkpath);
+                    }
+                    else
+                    {
+                        log("Skipping path: " + pkpath);
+                    }
+                }
+
+                if (ejsPaths.Count < 1)
+                {
+                    throw new Exception("No valid directory found in the package.");
+                }
+
+                var jsdObject = new JSDuck(workdir, ejsPaths, ejsVer, lcToolkit, log);
 
                 if (cancelRequested(e)) return;
                 var jsdp = jsdObject.RunAsync();
                 if (cancelRequested(e)) return;
 
                 JSDuck.PollExecution(jsdp, Constants.JSDuckTimeout, log, cancelRequested, e);
+
+                if (jsdp.ExitCode != 0)
+                {
+                    log("JSDuck finished with errors. Aborting.");
+                    return;
+                }
 
                 log("Finished generating JSDuck documentation.");
                 if (cancelRequested(e)) return;

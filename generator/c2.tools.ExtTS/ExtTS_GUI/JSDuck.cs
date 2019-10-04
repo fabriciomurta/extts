@@ -12,7 +12,7 @@ namespace ExtTS_GUI
     public class JSDuck
     {
         private string workingDirectory;
-        private string extjsPath;
+        private List<string> extjsPaths;
         private string extjsVer;
         private string extjsToolkit;
         private Action<string> log;
@@ -24,7 +24,10 @@ namespace ExtTS_GUI
                 return Path.Combine(workingDirectory, Constants.JSDuckOut_BasePath, "ext-" + extjsVer + "-" + extjsToolkit);
             }
         }
-        public JSDuck(string wd, string ep, string ev, string et, Action<string> lfn = null)
+        public JSDuck(string wd, string ep, string ev, string et, Action<string> lfn = null) :
+            this(wd, new List<string> { ep }, ev, et, lfn) { }
+
+        public JSDuck(string wd, List<string> eps, string ev, string et, Action<string> lfn = null)
         {
             if (wd == Environment.CurrentDirectory)
             {
@@ -34,8 +37,8 @@ namespace ExtTS_GUI
             {
                 workingDirectory = wd;
             }
-            
-            extjsPath = ep;
+
+            extjsPaths = eps;
             extjsVer = ev;
             extjsToolkit = et;
             log = lfn;
@@ -45,7 +48,7 @@ namespace ExtTS_GUI
         {
             var jsDuckBin_Path = Path.Combine(workingDirectory, Constants.JSDuckBin_Path);
             var jsDuck_OutPath = OutputPath;
-            var procArgs = '"' + extjsPath + '"' + " --output " + '"' + jsDuck_OutPath + '"';
+            var procArgs = '"' + string.Join("\" \"", extjsPaths) + '"' + " --output " + '"' + jsDuck_OutPath + '"';
 
             if (!File.Exists(jsDuckBin_Path))
             {
